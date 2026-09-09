@@ -1,0 +1,1225 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#2563eb" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="财务工作台" />
+  <meta name="description" content="高效 · 清晰 · 可控的个人财务工作台" />
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="icon" type="image/png" href="./icon-192.png" />
+  <link rel="apple-touch-icon" href="./icon-192.png" />
+  <title>财务工作台</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #f5f7fa;
+      --sidebar-bg: #ffffff;
+      --card-bg: #ffffff;
+      --text: #1f2937;
+      --text-secondary: #6b7280;
+      --primary: #2563eb;
+      --primary-light: #eff6ff;
+      --border: #e5e7eb;
+      --radius: 12px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.05), 0 8px 24px rgba(0,0,0,0.04);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Inter", "Noto Sans SC", system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .app { display: flex; height: 100vh; }
+
+    /* 左侧导航 */
+    .sidebar {
+      width: 260px;
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+
+    .brand { padding: 24px; border-bottom: 1px solid var(--border); }
+    .brand h1 { font-size: 18px; font-weight: 600; display: flex; align-items: center; gap: 10px; }
+    .brand span { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; background: var(--primary); color: #fff; border-radius: 8px; font-size: 16px; }
+    .brand p { font-size: 13px; color: var(--text-secondary); margin-top: 4px; margin-left: 42px; }
+
+    .nav { flex: 1; padding: 16px 12px; overflow-y: auto; }
+    .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 10px; cursor: pointer; color: var(--text-secondary); font-size: 14px; font-weight: 500; transition: all 0.2s ease; margin-bottom: 4px; }
+    .nav-item:hover { background: #f3f4f6; color: var(--text); }
+    .nav-item.active { background: var(--primary-light); color: var(--primary); }
+    .nav-item .icon { width: 22px; text-align: center; font-size: 16px; }
+
+    .sidebar-footer { padding: 16px; border-top: 1px solid var(--border); font-size: 12px; color: var(--text-secondary); text-align: center; }
+
+    /* 右侧内容 */
+    .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+    .topbar { height: 64px; background: var(--card-bg); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 28px; flex-shrink: 0; }
+    .topbar h2 { font-size: 18px; font-weight: 600; }
+    .topbar-date { font-size: 13px; color: var(--text-secondary); }
+
+    .content { flex: 1; padding: 24px 28px; overflow-y: auto; }
+    .section { display: none; animation: fadeIn 0.25s ease; }
+    .section.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+    .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); padding: 24px; margin-bottom: 20px; }
+    .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; gap: 12px; flex-wrap: wrap; }
+    .card-title { font-size: 15px; font-weight: 600; }
+
+    .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 8px; border: 1px solid var(--border); background: #fff; color: var(--text); font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s ease; }
+    .btn:hover { background: #f9fafb; }
+    .btn-primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .btn-primary:hover { background: #1d4ed8; }
+    .btn-ghost { background: transparent; border: none; }
+
+    /* 表格 */
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td { text-align: left; padding: 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    th { color: var(--text-secondary); font-weight: 500; background: #f9fafb; }
+    tr:last-child td { border-bottom: none; }
+    tbody tr { position: relative; }
+
+    .row-actions { display: flex; gap: 6px; }
+    .row-actions button, .card-actions button { background: transparent; border: none; color: var(--text-secondary); cursor: pointer; font-size: 12px; padding: 4px 8px; border-radius: 4px; }
+    .row-actions button:hover, .card-actions button:hover { background: #f3f4f6; color: var(--primary); }
+    .row-actions .delete:hover, .card-actions .delete:hover { color: #ef4444; }
+
+    td .cell-input, .cell-input { width: 100%; padding: 6px 8px; border: 1px solid var(--primary); border-radius: 6px; font-size: 13px; outline: none; }
+    td .cell-select, .cell-select { width: 100%; padding: 6px 8px; border: 1px solid var(--primary); border-radius: 6px; font-size: 13px; outline: none; background: #fff; }
+
+    .tag { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; }
+    .tag-blue { background: #eff6ff; color: #1d4ed8; }
+    .tag-green { background: #f0fdf4; color: #15803d; }
+    .tag-orange { background: #fff7ed; color: #c2410c; }
+    .tag-red { background: #fef2f2; color: #b91c1c; }
+    .tag-gray { background: #f3f4f6; color: #4b5563; }
+    .tag-purple { background: #f5f3ff; color: #6d28d9; }
+    .tag-yellow { background: #fefce8; color: #a16207; }
+
+    .progress-bar { height: 6px; background: #e5e7eb; border-radius: 3px; overflow: hidden; }
+    .progress-fill { height: 100%; background: var(--primary); border-radius: 3px; }
+
+    .summary-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 20px; }
+    .summary-box { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); }
+    .summary-box .label { font-size: 13px; color: var(--text-secondary); margin-bottom: 6px; }
+    .summary-box .value { font-size: 22px; font-weight: 600; }
+
+    .empty-tip { color: var(--text-secondary); font-size: 13px; padding: 20px 0; text-align: center; }
+
+    /* 常用网址 */
+    .link-toolbar { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+    .link-toolbar select, .link-toolbar input { padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; outline: none; }
+    .link-toolbar select:focus, .link-toolbar input:focus { border-color: var(--primary); }
+    .link-toolbar input { min-width: 200px; }
+
+    .link-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
+    .link-card {
+      display: flex; flex-direction: column; gap: 14px; padding: 18px;
+      background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius);
+      box-shadow: var(--shadow); color: var(--text); cursor: pointer; position: relative; transition: all 0.2s ease;
+    }
+    .link-card:hover { border-color: var(--primary); transform: translateY(-2px); }
+    .link-card .link-top { display: flex; align-items: center; gap: 12px; }
+    .link-icon { width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; background: var(--primary-light); flex-shrink: 0; }
+    .link-title { font-weight: 600; font-size: 14px; }
+    .link-url { font-size: 12px; color: var(--text-secondary); word-break: break-all; }
+    .link-desc { font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
+    .link-footer { display: flex; align-items: center; justify-content: space-between; }
+
+    .link-stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; margin-bottom: 20px; }
+    .link-stat-card { display: flex; align-items: center; gap: 14px; padding: 18px; background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); }
+    .link-stat-icon { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; background: #f3f4f6; }
+    .link-stat-info .label { font-size: 12px; color: var(--text-secondary); }
+    .link-stat-info .value { font-size: 20px; font-weight: 600; margin-top: 2px; }
+
+    .card-actions { display: flex; gap: 6px; }
+
+    /* 付款计划 */
+    .payment-month-filter { display: flex; align-items: center; gap: 10px; }
+    .payment-month-filter input[type="month"] { padding: 6px 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; }
+
+    /* 账户信息 */
+    .account-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 20px; }
+    .account-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+    .account-header { padding: 18px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; background: #fafafa; }
+    .account-header h3 { font-size: 15px; font-weight: 600; }
+    .account-body { padding: 16px 20px; }
+    .account-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+    .account-row:last-child { border-bottom: none; }
+    .account-row .label { color: var(--text-secondary); }
+    .account-row .value { display: flex; align-items: center; gap: 10px; font-weight: 500; }
+
+    .copy-btn { padding: 4px 10px; font-size: 12px; border-radius: 6px; border: 1px solid var(--border); background: #fff; cursor: pointer; color: var(--text-secondary); }
+    .copy-btn:hover { color: var(--primary); border-color: var(--primary); }
+
+    .account-section-title { font-size: 12px; font-weight: 600; color: var(--primary); margin: 12px 0 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .account-section-title:first-child { margin-top: 0; }
+    .legal-person-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .legal-person-grid .account-row { padding: 8px 0; }
+
+    /* 待办 */
+    .todo-group { margin-bottom: 18px; }
+    .todo-group-title { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 10px; padding: 8px 12px; background: #f9fafb; border-radius: 8px; display: flex; align-items: center; gap: 8px; }
+    .todo-group-title .count { font-size: 12px; color: var(--text-secondary); font-weight: 500; }
+    .todo-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .todo-table th, .todo-table td { padding: 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    .todo-table th { background: #f9fafb; color: var(--text-secondary); font-weight: 500; text-align: left; }
+    .todo-table tr:last-child td { border-bottom: none; }
+    .todo-checkbox { width: 18px; height: 18px; cursor: pointer; accent-color: var(--primary); }
+    .todo-content { display: flex; align-items: center; gap: 10px; }
+    .todo-text.done { text-decoration: line-through; color: var(--text-secondary); }
+    .todo-toolbar { display: flex; gap: 10px; margin-bottom: 18px; flex-wrap: wrap; }
+    .todo-toolbar input, .todo-toolbar select { padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; outline: none; }
+    .todo-toolbar input:focus, .todo-toolbar select:focus { border-color: var(--primary); }
+    .todo-toolbar input { flex: 1; min-width: 180px; }
+
+    /* 弹窗 */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: none; align-items: center; justify-content: center; z-index: 100; }
+    .modal-overlay.active { display: flex; }
+    .modal { background: var(--card-bg); border-radius: var(--radius); box-shadow: 0 20px 60px rgba(0,0,0,0.2); width: 520px; max-width: 90vw; max-height: 90vh; overflow-y: auto; animation: modalIn 0.2s ease; }
+    @keyframes modalIn { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
+    .modal-header { padding: 20px 24px; border-bottom: 1px solid var(--border); font-size: 16px; font-weight: 600; display: flex; align-items: center; justify-content: space-between; }
+    .modal-close { background: transparent; border: none; font-size: 20px; color: var(--text-secondary); cursor: pointer; }
+    .modal-body { padding: 24px; }
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px; color: var(--text); }
+    .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; outline: none; font-family: inherit; }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+    .form-group textarea { resize: vertical; min-height: 70px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .modal-footer { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; }
+
+    /* ============ 移动端适配 ============ */
+    html { -webkit-text-size-adjust: 100%; }
+    body { height: 100vh; height: 100dvh; touch-action: manipulation; overscroll-behavior: none; }
+    .app { height: 100vh; height: 100dvh; }
+    button, .nav-item, .link-card { -webkit-tap-highlight-color: transparent; }
+
+    /* 表格横向滚动容器（移动端） */
+    .table-wrap { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .table-wrap table, .table-wrap .todo-table { min-width: 640px; }
+
+    /* 底部标签导航（移动端显示，桌面隐藏） */
+    .bottom-nav { display: none; }
+    .topbar-brand { display: none; }
+
+    @media (max-width: 768px) {
+      .sidebar { display: none; }
+
+      .bottom-nav {
+        display: flex;
+        position: fixed;
+        left: 0; right: 0; bottom: 0;
+        z-index: 90;
+        background: var(--card-bg);
+        border-top: 1px solid var(--border);
+        box-shadow: 0 -2px 12px rgba(0,0,0,0.05);
+        padding-bottom: env(safe-area-inset-bottom, 0);
+      }
+      .bottom-nav .nav-item {
+        flex: 1;
+        flex-direction: column;
+        gap: 2px;
+        padding: 8px 0 6px;
+        margin: 0;
+        border-radius: 0;
+        font-size: 11px;
+        min-height: 50px;
+        justify-content: center;
+      }
+      .bottom-nav .nav-item:hover { background: transparent; }
+      .bottom-nav .nav-item.active { background: transparent; color: var(--primary); }
+      .bottom-nav .nav-item .icon { font-size: 20px; width: auto; }
+
+      .topbar { height: auto; min-height: 52px; padding: 8px 14px; gap: 10px; padding-top: calc(8px + env(safe-area-inset-top, 0)); }
+      .topbar h2 { font-size: 16px; }
+      .topbar-brand { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; background: var(--primary); color: #fff; border-radius: 8px; font-size: 15px; font-weight: 600; flex-shrink: 0; }
+      .topbar-date { font-size: 12px; }
+
+      .content { padding: 14px 12px calc(78px + env(safe-area-inset-bottom, 0)); }
+      .card { padding: 16px; margin-bottom: 14px; }
+      .card-header { margin-bottom: 12px; }
+      .btn { padding: 9px 12px; min-height: 40px; }
+
+      .summary-row { grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 14px; }
+      .summary-box { padding: 14px; }
+      .summary-box .value { font-size: 18px; }
+
+      .link-grid, .link-stats, .account-grid { grid-template-columns: 1fr; gap: 12px; }
+      .link-toolbar input { min-width: 0; flex: 1; width: 100%; }
+      .link-toolbar { gap: 8px; }
+
+      th, td, .todo-table th, .todo-table td { padding: 10px 8px; font-size: 12px; }
+
+      .legal-person-grid { grid-template-columns: 1fr; }
+
+      .todo-toolbar { gap: 8px; }
+      .todo-toolbar input { min-width: 0; }
+
+      .form-row { grid-template-columns: 1fr; gap: 12px; }
+      .form-group input, .form-group select, .form-group textarea,
+      .cell-input, .cell-select { font-size: 16px; } /* 防止 iOS 聚焦缩放 */
+      td .cell-input, td .cell-select { font-size: 13px; }
+
+      .modal { width: 100%; max-width: 100vw; max-height: 100dvh; height: 100%; border-radius: 0; }
+      .modal-overlay { align-items: stretch; }
+      .modal-header { padding: 16px 18px; padding-top: calc(16px + env(safe-area-inset-top, 0)); }
+      .modal-body { padding: 18px; }
+      .modal-footer { padding: 14px 18px; padding-bottom: calc(14px + env(safe-area-inset-bottom, 0)); }
+      .modal-footer .btn { flex: 1; }
+    }
+
+    @media (max-width: 380px) {
+      .summary-row { grid-template-columns: 1fr; }
+      .topbar-date { display: none; }
+    }
+
+    /* standalone（已安装到桌面）模式细节 */
+    @media (display-mode: standalone) {
+      .topbar { padding-top: calc(8px + env(safe-area-inset-top, 0)); }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <h1><span>财</span>财务工作台</h1>
+        <p>高效 · 清晰 · 可控</p>
+      </div>
+      <nav class="nav">
+        <div class="nav-item active" data-section="tax"><span class="icon">📋</span>税务申报</div>
+        <div class="nav-item" data-section="links"><span class="icon">🔗</span>常用网址</div>
+        <div class="nav-item" data-section="payments"><span class="icon">💳</span>付款计划</div>
+        <div class="nav-item" data-section="todos"><span class="icon">✅</span>待办备忘</div>
+        <div class="nav-item" data-section="accounts"><span class="icon">🏦</span>账户信息</div>
+      </nav>
+      <div class="sidebar-footer">按工作流顺序排列，提升日常效率</div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <span class="topbar-brand">财</span>
+        <h2 id="page-title">税务申报</h2>
+        <div class="topbar-date" id="current-date"></div>
+      </header>
+      <div class="content">
+        <!-- 税务申报 -->
+        <section id="tax" class="section active">
+          <div class="summary-row">
+            <div class="summary-box"><div class="label">待申报</div><div class="value" id="tax-count-pending">0</div></div>
+            <div class="summary-box"><div class="label">已完成核对</div><div class="value" id="tax-count-done">0</div></div>
+            <div class="summary-box"><div class="label">异常提醒</div><div class="value" id="tax-count-alert">0</div></div>
+            <div class="summary-box"><div class="label">本月应交税额合计</div><div class="value" id="tax-total-amount">¥0</div></div>
+            <div class="summary-box"><div class="label">选择月份</div><div class="value" style="font-size:16px;margin-top:4px;"><input type="month" id="tax-month-filter" class="cell-input" style="width:100%;" value="2026-07" onchange="renderTax()" /></div></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><div class="card-title">申报提醒及数据核对</div><button class="btn btn-primary" onclick="addTaxItem()">+ 新增申报项</button></div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>税种</th><th>申报周期</th><th>截止日</th><th>状态</th><th>核对结果</th><th>金额</th><th>备注</th><th style="width:90px;">操作</th></tr></thead>
+                <tbody id="tax-table"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- 常用网址 -->
+        <section id="links" class="section">
+          <div class="link-stats" id="link-stats"></div>
+          <div class="card">
+            <div class="card-header" style="align-items:flex-start;">
+              <div>
+                <div class="card-title">常用网址快捷入口</div>
+                <div style="font-size:12px;color:var(--text-secondary);margin-top:4px;">快速访问税务、政务、银行及内部系统</div>
+              </div>
+              <button class="btn btn-primary" onclick="addLink()">+ 添加网址</button>
+            </div>
+            <div class="link-toolbar">
+              <select id="link-category-filter" onchange="renderLinks()"><option value="">全部类别</option></select>
+              <input type="text" id="link-search" placeholder="搜索网站名称或网址…" oninput="renderLinks()" />
+            </div>
+            <div class="link-grid" id="link-grid"></div>
+          </div>
+        </section>
+
+        <!-- 付款计划 -->
+        <section id="payments" class="section">
+          <div class="summary-row">
+            <div class="summary-box"><div class="label">本月应付总额</div><div class="value" id="pay-total">¥0</div></div>
+            <div class="summary-box"><div class="label">已付款</div><div class="value" id="pay-paid">¥0</div></div>
+            <div class="summary-box"><div class="label">待付款</div><div class="value" id="pay-pending">¥0</div></div>
+            <div class="summary-box"><div class="label">选择月份</div><div class="value" style="font-size:16px;margin-top:4px;"><input type="month" id="pay-month-filter" class="cell-input" style="width:100%;" value="2026-07" onchange="renderPayments()" /></div></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><div class="card-title">每月付款计划</div><button class="btn btn-primary" onclick="addPayment()">+ 新增付款</button></div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>付款对象</th><th>付款内容</th><th>计划日期</th><th>金额</th><th>状态</th><th>进度</th><th style="width:90px;">操作</th></tr></thead>
+                <tbody id="payment-table"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- 待办备忘 -->
+        <section id="todos" class="section">
+          <div class="summary-row">
+            <div class="summary-box"><div class="label">今日待办</div><div class="value" id="todo-today-count">0</div></div>
+            <div class="summary-box"><div class="label">本月待办</div><div class="value" id="todo-month-count">0</div></div>
+            <div class="summary-box"><div class="label">已完成</div><div class="value" id="todo-done-count">0</div></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><div class="card-title">待办事项 & 工作计划</div><button class="btn btn-primary" onclick="addTodo()">+ 新增待办</button></div>
+            <div id="todo-list"></div>
+          </div>
+        </section>
+
+        <!-- 账户信息 -->
+        <section id="accounts" class="section">
+          <div class="card">
+            <div class="card-header"><div class="card-title">公司主体账号及银行账号信息</div><button class="btn btn-primary" onclick="addAccount()">+ 新增主体</button></div>
+            <div class="account-grid" id="account-grid"></div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <!-- 底部标签导航（移动端） -->
+  <nav class="bottom-nav">
+    <div class="nav-item active" data-section="tax"><span class="icon">📋</span><span>税务</span></div>
+    <div class="nav-item" data-section="links"><span class="icon">🔗</span><span>网址</span></div>
+    <div class="nav-item" data-section="payments"><span class="icon">💳</span><span>付款</span></div>
+    <div class="nav-item" data-section="todos"><span class="icon">✅</span><span>待办</span></div>
+    <div class="nav-item" data-section="accounts"><span class="icon">🏦</span><span>账户</span></div>
+  </nav>
+
+  <!-- 通用弹窗 -->
+  <div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div class="modal-header"><span id="modal-title">新增</span><button class="modal-close" onclick="closeModal()">&times;</button></div>
+      <div class="modal-body" id="modal-body"></div>
+      <div class="modal-footer"><button class="btn" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="saveModal()">保存</button></div>
+    </div>
+  </div>
+
+  <script>
+    // 数据层
+    const STORE_KEY = 'financeWorkbenchData';
+
+    const initialData = {
+      tax: [
+        { id: 1, taxType: '增值税', period: '2026年7月', deadline: '2026-08-15', status: '待申报', checkResult: '数据已核对', amount: 10000, remark: '—' },
+        { id: 2, taxType: '企业所得税', period: '2026年二季度', deadline: '2026-07-15', status: '即将到期', checkResult: '待复核', amount: 25000, remark: '重点关注研发费用' },
+        { id: 3, taxType: '个人所得税', period: '2026年7月', deadline: '2026-08-15', status: '已完成', checkResult: '无误', amount: 8000, remark: '—' }
+      ],
+      payments: [
+        { id: 1, payee: 'XX 科技有限公司', content: '云服务费用', date: '2026-07-10', amount: 12000, status: '已付' },
+        { id: 2, payee: 'YY 办公用品供应商', content: '办公耗材采购', date: '2026-07-18', amount: 8500, status: '待付' },
+        { id: 3, payee: 'ZZ 人力资源公司', content: '社保代缴服务费', date: '2026-07-25', amount: 46000, status: '审批中' }
+      ],
+      links: [
+        { id: 1, title: '电子税务局', url: 'https://etax.chinatax.gov.cn', icon: '🌐', category: '税务平台', desc: '申报缴税、发票查询' },
+        { id: 2, title: '工商银行企业网银', url: 'https://www.icbc.com.cn', icon: '🏦', category: '银行金融', desc: '对公转账、回单下载' },
+        { id: 3, title: '国家企业信用信息公示', url: 'https://www.gsxt.gov.cn', icon: '📇', category: '政务平台', desc: '工商信息、年报公示' },
+        { id: 4, title: '发票查验平台', url: 'https://invoice.yonyoucloud.com', icon: '🧾', category: '税务平台', desc: '发票真伪验证' }
+      ],
+      accounts: [
+        { id: 1, name: '北京 XX 科技有限公司', code: '91110108XXXXXXXX12', address: '北京市海淀区中关村大街1号', capital: '1000万元', establishDate: '2020-05-18', legalName: '张三', legalPhone: '13800138000', legalId: '11010119900101XXXX', legalEmail: 'zhangsan@example.com', bank: '中国工商银行北京海淀支行', account: '0200 XXXX XXXX 1234 567' },
+        { id: 2, name: '上海 YY 信息科技有限公司', code: '91310115XXXXXXXX34', address: '上海市浦东新区张江高科路88号', capital: '500万元', establishDate: '2019-08-26', legalName: '李四', legalPhone: '13900139000', legalId: '31011519880202XXXX', legalEmail: 'lisi@example.com', bank: '招商银行上海张江支行', account: '1219 XXXX XXXX 8888' }
+      ],
+      todos: [
+        { id: 1, date: '2026-07-26', content: '核对 7 月银行流水', progress: 50, remark: '需补充周末流水', done: false },
+        { id: 2, date: '2026-07-26', content: '跟进发票开具进度', progress: 0, remark: '联系销售部', done: false },
+        { id: 3, date: '2026-07-25', content: '更新费用报销台账', progress: 100, remark: '已完成归档', done: true }
+      ]
+    };
+
+    let store = loadStore();
+
+    function loadStore() {
+      try {
+        const raw = localStorage.getItem(STORE_KEY);
+        if (!raw) return JSON.parse(JSON.stringify(initialData));
+        const parsed = JSON.parse(raw);
+        // 兼容旧数据：补全缺失字段
+        if (!parsed.tax) parsed.tax = initialData.tax;
+        if (!parsed.payments) parsed.payments = initialData.payments;
+        if (!parsed.links) parsed.links = initialData.links;
+        if (!parsed.accounts) parsed.accounts = initialData.accounts;
+        if (!parsed.todos) parsed.todos = initialData.todos;
+        parsed.links.forEach(l => { if (!l.category) l.category = '未分类'; if (!l.desc) l.desc = ''; });
+        parsed.accounts.forEach(a => {
+          a.address = a.address || '';
+          a.capital = a.capital || '';
+          a.establishDate = a.establishDate || '';
+          a.legalName = a.legalName || '';
+          a.legalPhone = a.legalPhone || '';
+          a.legalId = a.legalId || '';
+          a.legalEmail = a.legalEmail || '';
+        });
+        return parsed;
+      } catch (e) {
+        return JSON.parse(JSON.stringify(initialData));
+      }
+    }
+
+    function saveStore() {
+      localStorage.setItem(STORE_KEY, JSON.stringify(store));
+    }
+
+    function nextId(arr) {
+      return arr.length ? Math.max(...arr.map(i => i.id)) + 1 : 1;
+    }
+
+    function formatMoney(amount) {
+      const num = parseFloat(String(amount).replace(/[¥,]/g, ''));
+      return isNaN(num) ? '¥0' : '¥' + num.toLocaleString('zh-CN');
+    }
+
+    function parseMoney(amount) {
+      return parseFloat(String(amount).replace(/[¥,]/g, '')) || 0;
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = String(text ?? '');
+      return div.innerHTML;
+    }
+
+    function formatDateISO(d) {
+      const date = d instanceof Date ? d : new Date(d);
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    }
+
+    function dateToMonth(date) {
+      return date ? date.slice(0, 7) : '';
+    }
+
+    function periodToMonth(period) {
+      const m = period.match(/(\d{4})年(\d{1,2})月/);
+      return m ? `${m[1]}-${m[2].padStart(2, '0')}` : '';
+    }
+
+    function periodToValue(period) {
+      const m = period.match(/(\d{4})年(\d{1,2})月/);
+      return m ? `${m[1]}-${m[2].padStart(2, '0')}` : '';
+    }
+
+    function statusTag(status) {
+      const map = {
+        '待申报': 'tag-blue', '待付': 'tag-blue', '待处理': 'tag-blue', '待办': 'tag-blue',
+        '即将到期': 'tag-orange', '审批中': 'tag-orange',
+        '已完成': 'tag-green', '已付': 'tag-green', '已完成核对': 'tag-green',
+        '异常': 'tag-red'
+      };
+      return map[status] || 'tag-blue';
+    }
+
+    // 导航（侧边栏 + 底部标签共用，按 data-section 同步高亮）
+    const navItems = document.querySelectorAll('[data-section]');
+    const sections = document.querySelectorAll('.section');
+    const pageTitle = document.getElementById('page-title');
+    const contentEl = document.querySelector('.content');
+    const titles = { tax: '税务申报', links: '常用网址', payments: '付款计划', todos: '待办备忘', accounts: '账户信息' };
+    navItems.forEach(item => item.addEventListener('click', () => {
+      const target = item.dataset.section;
+      navItems.forEach(i => i.classList.toggle('active', i.dataset.section === target));
+      sections.forEach(s => s.classList.remove('active'));
+      document.getElementById(target).classList.add('active');
+      pageTitle.textContent = titles[target];
+      if (contentEl) contentEl.scrollTop = 0;
+    }));
+
+    const now = new Date();
+    document.getElementById('current-date').textContent = now.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
+
+    // 税务
+    function renderTax() {
+      const selected = document.getElementById('tax-month-filter').value || dateToMonth(formatDateISO(now));
+      const tbody = document.getElementById('tax-table');
+      tbody.innerHTML = '';
+      let pending = 0, done = 0, alert = 0, total = 0;
+      store.tax.forEach(item => {
+        const month = periodToMonth(item.period);
+        const match = !selected || month === selected;
+        if (!match) return;
+        const status = item.status;
+        if (status === '已完成') done++;
+        else if (status === '异常') alert++;
+        else pending++;
+        total += parseMoney(item.amount);
+        const tr = document.createElement('tr');
+        tr.dataset.id = item.id;
+        tr.dataset.month = month;
+        tr.innerHTML = `<td>${escapeHtml(item.taxType)}</td>
+          <td>${escapeHtml(item.period)}</td>
+          <td>${escapeHtml(item.deadline)}</td>
+          <td><span class="tag ${statusTag(status)}">${escapeHtml(status)}</span></td>
+          <td>${escapeHtml(item.checkResult)}</td>
+          <td>${formatMoney(item.amount)}</td>
+          <td>${escapeHtml(item.remark)}</td>
+          <td><div class="row-actions"><button type="button" onclick="editTaxRow(${item.id})">编辑</button><button type="button" class="delete" onclick="deleteTaxRow(${item.id})">删除</button></div></td>`;
+        tbody.appendChild(tr);
+      });
+      document.getElementById('tax-count-pending').textContent = pending;
+      document.getElementById('tax-count-done').textContent = done;
+      document.getElementById('tax-count-alert').textContent = alert;
+      document.getElementById('tax-total-amount').textContent = formatMoney(total);
+    }
+
+    function addTaxItem() { openModal('tax'); }
+
+    function editTaxRow(id) {
+      const item = store.tax.find(i => i.id === id);
+      if (!item) return;
+      const row = document.querySelector(`#tax-table tr[data-id="${id}"]`);
+      if (row.dataset.editing) return;
+      row.dataset.editing = 'true';
+      row.innerHTML = `<td><input class="cell-input" value="${escapeHtml(item.taxType)}"></td>
+        <td><input type="month" class="cell-input" value="${periodToValue(item.period)}"></td>
+        <td><input type="date" class="cell-input" value="${escapeHtml(item.deadline)}"></td>
+        <td><select class="cell-select">${['待申报','即将到期','已完成','异常'].map(s => `<option value="${s}" ${s===item.status?'selected':''}>${s}</option>`).join('')}</select></td>
+        <td><input class="cell-input" value="${escapeHtml(item.checkResult)}"></td>
+        <td><input class="cell-input" type="number" value="${parseMoney(item.amount)}"></td>
+        <td><input class="cell-input" value="${item.remark === '—' ? '' : escapeHtml(item.remark)}"></td>
+        <td><div class="row-actions"><button type="button" onclick="saveTaxRow(${item.id})">保存</button><button type="button" onclick="renderTax()">取消</button></div></td>`;
+    }
+
+    function saveTaxRow(id) {
+      const row = document.querySelector(`#tax-table tr[data-id="${id}"]`);
+      const inputs = row.querySelectorAll('input, select');
+      const taxType = inputs[0].value.trim();
+      const periodRaw = inputs[1].value;
+      const deadline = inputs[2].value;
+      const status = inputs[3].value;
+      const checkResult = inputs[4].value.trim();
+      const amount = inputs[5].value.trim();
+      const remark = inputs[6].value.trim() || '—';
+      if (!taxType || !periodRaw || !deadline) return alert('请填写完整必填项');
+      const [year, month] = periodRaw.split('-');
+      const period = `${year}年${parseInt(month, 10)}月`;
+      const item = store.tax.find(i => i.id === id);
+      item.taxType = taxType; item.period = period; item.deadline = deadline; item.status = status;
+      item.checkResult = checkResult; item.amount = parseMoney(amount); item.remark = remark;
+      saveStore(); renderTax();
+    }
+
+    function deleteTaxRow(id) {
+      if (!confirm('确定删除这条记录吗？')) return;
+      store.tax = store.tax.filter(i => i.id !== id);
+      saveStore(); renderTax();
+    }
+
+    // 常用网址
+    function categoryStyle(category) {
+      const map = { '税务平台': 'tag-blue', '政务平台': 'tag-purple', '银行金融': 'tag-green', '内部系统': 'tag-orange', '未分类': 'tag-gray' };
+      return map[category] || 'tag-blue';
+    }
+
+    function renderLinkStats() {
+      const categories = {};
+      store.links.forEach(l => { categories[l.category] = (categories[l.category] || 0) + 1; });
+      const entries = Object.entries(categories).sort((a, b) => b[1] - a[1]);
+      const mostCommon = entries[0] || ['—', 0];
+      const lastAdded = store.links.slice().sort((a, b) => b.id - a.id)[0];
+      const container = document.getElementById('link-stats');
+      container.innerHTML = `
+        <div class="link-stat-card"><div class="link-stat-icon">🔗</div><div class="link-stat-info"><div class="label">网址总数</div><div class="value">${store.links.length}</div></div></div>
+        <div class="link-stat-card"><div class="link-stat-icon" style="background:#fff7ed;">📂</div><div class="link-stat-info"><div class="label">类别数量</div><div class="value">${Object.keys(categories).length}</div></div></div>
+        <div class="link-stat-card"><div class="link-stat-icon" style="background:#f0fdf4;">🕒</div><div class="link-stat-info"><div class="label">最近添加</div><div class="value" style="font-size:14px;">${lastAdded ? escapeHtml(lastAdded.title) : '—'}</div></div></div>
+        <div class="link-stat-card"><div class="link-stat-icon" style="background:#f5f3ff;">🏷️</div><div class="link-stat-info"><div class="label">常用类别</div><div class="value" style="font-size:14px;">${escapeHtml(mostCommon[0])} (${mostCommon[1]}个)</div></div></div>`;
+    }
+
+    function renderLinkFilterOptions() {
+      const cats = [...new Set(store.links.map(l => l.category))];
+      const select = document.getElementById('link-category-filter');
+      const current = select.value;
+      select.innerHTML = '<option value="">全部类别</option>' + cats.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+      select.value = current;
+    }
+
+    function renderLinks() {
+      renderLinkStats(); renderLinkFilterOptions();
+      const filterCat = document.getElementById('link-category-filter').value;
+      const search = document.getElementById('link-search').value.trim().toLowerCase();
+      const grid = document.getElementById('link-grid');
+      grid.innerHTML = '';
+      const filtered = store.links.filter(l => {
+        const catMatch = !filterCat || l.category === filterCat;
+        const searchMatch = !search || l.title.toLowerCase().includes(search) || l.url.toLowerCase().includes(search) || l.desc.toLowerCase().includes(search);
+        return catMatch && searchMatch;
+      });
+      if (!filtered.length) { grid.innerHTML = '<div class="empty-tip">暂无匹配网址</div>'; return; }
+      filtered.forEach(item => {
+        const displayUrl = item.url.replace(/^https?:\/\//, '');
+        const card = document.createElement('div');
+        card.className = 'link-card';
+        card.dataset.id = item.id;
+        card.onclick = e => { if (!e.target.closest('button')) window.open(item.url, '_blank'); };
+        card.innerHTML = `
+          <div class="link-top">
+            <div class="link-icon">${escapeHtml(item.icon || '🔗')}</div>
+            <div style="flex:1;min-width:0;">
+              <div class="link-title">${escapeHtml(item.title)}</div>
+              <div class="link-url">${escapeHtml(displayUrl)}</div>
+            </div>
+          </div>
+          <div class="link-desc">${escapeHtml(item.desc || '暂无描述')}</div>
+          <div class="link-footer">
+            <span class="tag ${categoryStyle(item.category)}">${escapeHtml(item.category)}</span>
+            <div class="card-actions"><button type="button" onclick="editLink(${item.id})">编辑</button><button type="button" class="delete" onclick="deleteLink(${item.id})">删除</button></div>
+          </div>`;
+        grid.appendChild(card);
+      });
+    }
+
+    function addLink() { openModal('link'); }
+
+    function editLink(id) {
+      const item = store.links.find(i => i.id === id);
+      if (!item) return;
+      const card = document.querySelector(`#link-grid .link-card[data-id="${id}"]`);
+      if (card.dataset.editing) return;
+      card.dataset.editing = 'true';
+      card.onclick = null;
+      card.innerHTML = `
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <input class="cell-input" id="link-edit-icon-${id}" placeholder="图标" value="${escapeHtml(item.icon || '🔗')}">
+          <input class="cell-input" id="link-edit-title-${id}" placeholder="网站名称" value="${escapeHtml(item.title)}">
+          <input class="cell-input" id="link-edit-url-${id}" placeholder="网址" value="${escapeHtml(item.url)}">
+          <input class="cell-input" id="link-edit-category-${id}" placeholder="类别" value="${escapeHtml(item.category)}">
+          <input class="cell-input" id="link-edit-desc-${id}" placeholder="描述" value="${escapeHtml(item.desc)}">
+        </div>
+        <div class="card-actions" style="justify-content:flex-end;margin-top:8px;"><button type="button" onclick="saveLink(${id})">保存</button><button type="button" onclick="renderLinks()">取消</button></div>`;
+    }
+
+    function saveLink(id) {
+      const item = store.links.find(i => i.id === id);
+      const icon = document.getElementById(`link-edit-icon-${id}`).value.trim();
+      const title = document.getElementById(`link-edit-title-${id}`).value.trim();
+      let url = document.getElementById(`link-edit-url-${id}`).value.trim();
+      const category = document.getElementById(`link-edit-category-${id}`).value.trim() || '未分类';
+      const desc = document.getElementById(`link-edit-desc-${id}`).value.trim();
+      if (!title || !url) return alert('请填写网站名称和网址');
+      if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+      item.icon = icon; item.title = title; item.url = url; item.category = category; item.desc = desc;
+      saveStore(); renderLinks();
+    }
+
+    function deleteLink(id) {
+      if (!confirm('确定删除这条网址吗？')) return;
+      store.links = store.links.filter(i => i.id !== id);
+      saveStore(); renderLinks();
+    }
+
+    // 付款计划
+    function renderPayments() {
+      const selected = document.getElementById('pay-month-filter').value || dateToMonth(formatDateISO(now));
+      const tbody = document.getElementById('payment-table');
+      tbody.innerHTML = '';
+      let total = 0, paid = 0, pending = 0;
+      store.payments.forEach(item => {
+        const month = dateToMonth(item.date);
+        if (month !== selected) return;
+        const amount = parseMoney(item.amount);
+        total += amount;
+        if (item.status === '已付') paid += amount; else pending += amount;
+        const width = item.status === '已付' ? 100 : item.status === '审批中' ? 50 : 0;
+        const tr = document.createElement('tr');
+        tr.dataset.id = item.id;
+        tr.innerHTML = `<td>${escapeHtml(item.payee)}</td>
+          <td>${escapeHtml(item.content)}</td>
+          <td>${escapeHtml(item.date)}</td>
+          <td>${formatMoney(item.amount)}</td>
+          <td><span class="tag ${statusTag(item.status)}">${escapeHtml(item.status)}</span></td>
+          <td><div class="progress-bar"><div class="progress-fill" style="width:${width}%"></div></div></td>
+          <td><div class="row-actions"><button type="button" onclick="editPaymentRow(${item.id})">编辑</button><button type="button" class="delete" onclick="deletePaymentRow(${item.id})">删除</button></div></td>`;
+        tbody.appendChild(tr);
+      });
+      document.getElementById('pay-total').textContent = formatMoney(total);
+      document.getElementById('pay-paid').textContent = formatMoney(paid);
+      document.getElementById('pay-pending').textContent = formatMoney(pending);
+    }
+
+    function addPayment() { openModal('payment'); }
+
+    function editPaymentRow(id) {
+      const item = store.payments.find(i => i.id === id);
+      if (!item) return;
+      const row = document.querySelector(`#payment-table tr[data-id="${id}"]`);
+      if (row.dataset.editing) return;
+      row.dataset.editing = 'true';
+      row.innerHTML = `<td><input class="cell-input" value="${escapeHtml(item.payee)}"></td>
+        <td><input class="cell-input" value="${escapeHtml(item.content)}"></td>
+        <td><input type="date" class="cell-input" value="${escapeHtml(item.date)}"></td>
+        <td><input class="cell-input" type="number" value="${parseMoney(item.amount)}"></td>
+        <td><select class="cell-select">${['待付','审批中','已付'].map(s => `<option value="${s}" ${s===item.status?'selected':''}>${s}</option>`).join('')}</select></td>
+        <td><div class="progress-bar"><div class="progress-fill" style="width:${item.status==='已付'?100:item.status==='审批中'?50:0}%"></div></div></td>
+        <td><div class="row-actions"><button type="button" onclick="savePaymentRow(${item.id})">保存</button><button type="button" onclick="renderPayments()">取消</button></div></td>`;
+    }
+
+    function savePaymentRow(id) {
+      const row = document.querySelector(`#payment-table tr[data-id="${id}"]`);
+      const inputs = row.querySelectorAll('input, select');
+      const payee = inputs[0].value.trim();
+      const content = inputs[1].value.trim();
+      const date = inputs[2].value;
+      const amount = inputs[3].value.trim();
+      const status = inputs[4].value;
+      if (!payee || !content || !date || !amount) return alert('请填写完整必填项');
+      const item = store.payments.find(i => i.id === id);
+      item.payee = payee; item.content = content; item.date = date; item.amount = parseMoney(amount); item.status = status;
+      saveStore(); renderPayments();
+    }
+
+    function deletePaymentRow(id) {
+      if (!confirm('确定删除这条付款记录吗？')) return;
+      store.payments = store.payments.filter(i => i.id !== id);
+      saveStore(); renderPayments();
+    }
+
+    // 待办
+    function renderTodos() {
+      const today = formatDateISO(now);
+      const thisMonth = dateToMonth(today);
+      const container = document.getElementById('todo-list');
+      container.innerHTML = '';
+      let todayCount = 0, monthCount = 0, doneCount = 0;
+      const groups = {};
+      store.todos.forEach(item => {
+        const month = dateToMonth(item.date);
+        const date = item.date;
+        if (date === today) todayCount++;
+        if (month === thisMonth) monthCount++;
+        if (item.done) doneCount++;
+        if (!groups[date]) groups[date] = [];
+        groups[date].push(item);
+      });
+      document.getElementById('todo-today-count').textContent = todayCount;
+      document.getElementById('todo-month-count').textContent = monthCount;
+      document.getElementById('todo-done-count').textContent = doneCount;
+
+      const sortedDates = Object.keys(groups).sort().reverse();
+      if (!sortedDates.length) { container.innerHTML = '<div class="empty-tip">暂无待办事项</div>'; return; }
+      sortedDates.forEach(date => {
+        const group = groups[date].sort((a, b) => a.id - b.id);
+        const groupEl = document.createElement('div');
+        groupEl.className = 'todo-group';
+        const dateLabel = date === today ? '今天' : date === formatDateISO(new Date(now.getTime() - 86400000)) ? '昨天' : date;
+        const allDone = group.every(i => i.done);
+        const doneCountInGroup = group.filter(i => i.done).length;
+        groupEl.innerHTML = `<div class="todo-group-title"><span>${dateLabel}</span><span class="count">${doneCountInGroup}/${group.length} 完成</span>${allDone ? '<span class="tag tag-green">全部完成</span>' : ''}</div>`;
+        const table = document.createElement('table');
+        table.className = 'todo-table';
+        table.innerHTML = `<thead><tr><th style="width:40px;"></th><th style="width:120px;">时间</th><th>内容</th><th style="width:120px;">进度</th><th>备注</th><th style="width:90px;">操作</th></tr></thead>`;
+        const tbody = document.createElement('tbody');
+        group.forEach(item => {
+          const tr = document.createElement('tr');
+          tr.dataset.id = item.id;
+          tr.innerHTML = `<td><input type="checkbox" class="todo-checkbox" ${item.done ? 'checked' : ''} onchange="toggleTodo(${item.id})"></td>
+            <td>${item.date}</td>
+            <td><div class="todo-content"><span class="todo-text ${item.done ? 'done' : ''}">${escapeHtml(item.content)}</span></div></td>
+            <td><div class="progress-bar"><div class="progress-fill" style="width:${item.progress}%"></div></div><div style="font-size:11px;color:var(--text-secondary);margin-top:4px;">${item.progress}%</div></td>
+            <td>${escapeHtml(item.remark)}</td>
+            <td><div class="row-actions"><button type="button" onclick="editTodo(${item.id})">编辑</button><button type="button" class="delete" onclick="deleteTodo(${item.id})">删除</button></div></td>`;
+          tbody.appendChild(tr);
+        });
+        table.appendChild(tbody);
+        const tableWrap = document.createElement('div');
+        tableWrap.className = 'table-wrap';
+        tableWrap.appendChild(table);
+        groupEl.appendChild(tableWrap);
+        container.appendChild(groupEl);
+      });
+    }
+
+    function addTodo() { openModal('todo'); }
+
+    function toggleTodo(id) {
+      const item = store.todos.find(i => i.id === id);
+      item.done = !item.done;
+      item.progress = item.done ? 100 : 0;
+      saveStore(); renderTodos();
+    }
+
+    function editTodo(id) {
+      const item = store.todos.find(i => i.id === id);
+      if (!item) return;
+      const row = document.querySelector(`#todo-list tr[data-id="${id}"]`);
+      if (row.dataset.editing) return;
+      row.dataset.editing = 'true';
+      row.innerHTML = `<td><input type="checkbox" class="todo-checkbox" ${item.done ? 'checked' : ''} disabled></td>
+        <td><input type="date" class="cell-input" value="${escapeHtml(item.date)}"></td>
+        <td><input class="cell-input" value="${escapeHtml(item.content)}"></td>
+        <td><input class="cell-input" type="number" min="0" max="100" value="${item.progress}"></td>
+        <td><input class="cell-input" value="${escapeHtml(item.remark)}"></td>
+        <td><div class="row-actions"><button type="button" onclick="saveTodo(${item.id})">保存</button><button type="button" onclick="renderTodos()">取消</button></div></td>`;
+    }
+
+    function saveTodo(id) {
+      const row = document.querySelector(`#todo-list tr[data-id="${id}"]`);
+      const inputs = row.querySelectorAll('input');
+      const date = inputs[1].value;
+      const content = inputs[2].value.trim();
+      const progress = parseInt(inputs[3].value, 10) || 0;
+      const remark = inputs[4].value.trim();
+      if (!date || !content) return alert('请填写日期和内容');
+      const item = store.todos.find(i => i.id === id);
+      item.date = date; item.content = content; item.progress = Math.max(0, Math.min(100, progress)); item.remark = remark;
+      item.done = item.progress === 100;
+      saveStore(); renderTodos();
+    }
+
+    function deleteTodo(id) {
+      if (!confirm('确定删除这条待办吗？')) return;
+      store.todos = store.todos.filter(i => i.id !== id);
+      saveStore(); renderTodos();
+    }
+
+    // 账户信息
+    function accountRow(label, value) {
+      return `<div class="account-row"><span class="label">${escapeHtml(label)}</span><span class="value">${escapeHtml(value || '')}</span></div>`;
+    }
+
+    function sectionTitle(title, sectionKey, itemId) {
+      return `<div class="account-section-title" style="display:flex;justify-content:space-between;align-items:center;">${escapeHtml(title)}<button class="copy-btn" type="button" onclick="copyAccountSection(${itemId}, '${sectionKey}')">复制</button></div>`;
+    }
+
+    function renderAccounts() {
+      const grid = document.getElementById('account-grid');
+      grid.innerHTML = '';
+      store.accounts.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'account-card';
+        card.dataset.id = item.id;
+        card.innerHTML = `
+          <div class="account-header">
+            <h3>${escapeHtml(item.name)}</h3>
+            <div class="card-actions"><button type="button" onclick="editAccount(${item.id})">编辑</button><button type="button" class="delete" onclick="deleteAccount(${item.id})">删除</button></div>
+          </div>
+          <div class="account-body">
+            ${sectionTitle('工商信息', 'business', item.id)}
+            ${accountRow('统一社会信用代码', item.code)}
+            ${accountRow('注册地址', item.address)}
+            ${accountRow('注册资本', item.capital)}
+            ${accountRow('成立时间', item.establishDate)}
+
+            ${sectionTitle('法人信息', 'legal', item.id)}
+            <div class="legal-person-grid">
+              ${accountRow('姓名', item.legalName)}
+              ${accountRow('手机号', item.legalPhone)}
+              ${accountRow('身份证号', item.legalId)}
+              ${accountRow('邮箱', item.legalEmail)}
+            </div>
+
+            ${sectionTitle('银行信息', 'bank', item.id)}
+            ${accountRow('开户银行', item.bank)}
+            ${accountRow('银行账号', item.account)}
+          </div>`;
+        grid.appendChild(card);
+      });
+    }
+
+    function addAccount() { openModal('account'); }
+
+    function editAccount(id) {
+      const item = store.accounts.find(i => i.id === id);
+      if (!item) return;
+      const card = document.querySelector(`#account-grid .account-card[data-id="${id}"]`);
+      if (card.dataset.editing) return;
+      card.dataset.editing = 'true';
+      card.innerHTML = `
+        <div class="account-header"><h3>编辑账户信息</h3></div>
+        <div class="account-body" style="display:flex;flex-direction:column;gap:10px;">
+          <div class="account-section-title">工商信息</div>
+          <input class="cell-input" id="acc-edit-name-${id}" placeholder="公司名称" value="${escapeHtml(item.name)}">
+          <input class="cell-input" id="acc-edit-code-${id}" placeholder="统一社会信用代码" value="${escapeHtml(item.code)}">
+          <input class="cell-input" id="acc-edit-address-${id}" placeholder="注册地址" value="${escapeHtml(item.address)}">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <input class="cell-input" id="acc-edit-capital-${id}" placeholder="注册资本" value="${escapeHtml(item.capital)}">
+            <input class="cell-input" id="acc-edit-establishDate-${id}" type="date" placeholder="成立时间" value="${escapeHtml(item.establishDate)}">
+          </div>
+          <div class="account-section-title">法人信息</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <input class="cell-input" id="acc-edit-legalName-${id}" placeholder="法人姓名" value="${escapeHtml(item.legalName)}">
+            <input class="cell-input" id="acc-edit-legalPhone-${id}" placeholder="法人手机号" value="${escapeHtml(item.legalPhone)}">
+            <input class="cell-input" id="acc-edit-legalId-${id}" placeholder="法人身份证号" value="${escapeHtml(item.legalId)}">
+            <input class="cell-input" id="acc-edit-legalEmail-${id}" placeholder="法人邮箱" value="${escapeHtml(item.legalEmail)}">
+          </div>
+          <div class="account-section-title">银行信息</div>
+          <input class="cell-input" id="acc-edit-bank-${id}" placeholder="开户银行" value="${escapeHtml(item.bank)}">
+          <input class="cell-input" id="acc-edit-account-${id}" placeholder="银行账号" value="${escapeHtml(item.account)}">
+          <div class="card-actions" style="justify-content:flex-end;margin-top:8px;"><button type="button" onclick="saveAccount(${id})">保存</button><button type="button" onclick="renderAccounts()">取消</button></div>
+        </div>`;
+    }
+
+    function saveAccount(id) {
+      const item = store.accounts.find(i => i.id === id);
+      const name = document.getElementById(`acc-edit-name-${id}`).value.trim();
+      const code = document.getElementById(`acc-edit-code-${id}`).value.trim();
+      const address = document.getElementById(`acc-edit-address-${id}`).value.trim();
+      const capital = document.getElementById(`acc-edit-capital-${id}`).value.trim();
+      const establishDate = document.getElementById(`acc-edit-establishDate-${id}`).value.trim();
+      const legalName = document.getElementById(`acc-edit-legalName-${id}`).value.trim();
+      const legalPhone = document.getElementById(`acc-edit-legalPhone-${id}`).value.trim();
+      const legalId = document.getElementById(`acc-edit-legalId-${id}`).value.trim();
+      const legalEmail = document.getElementById(`acc-edit-legalEmail-${id}`).value.trim();
+      const bank = document.getElementById(`acc-edit-bank-${id}`).value.trim();
+      const account = document.getElementById(`acc-edit-account-${id}`).value.trim();
+      if (!name || !code || !bank || !account) return alert('请填写完整公司主体信息（名称、信用代码、银行必填）');
+      item.name = name; item.code = code; item.address = address; item.capital = capital; item.establishDate = establishDate;
+      item.legalName = legalName; item.legalPhone = legalPhone; item.legalId = legalId; item.legalEmail = legalEmail;
+      item.bank = bank; item.account = account;
+      saveStore(); renderAccounts();
+    }
+
+    function deleteAccount(id) {
+      if (!confirm('确定删除这个主体账户吗？')) return;
+      store.accounts = store.accounts.filter(i => i.id !== id);
+      saveStore(); renderAccounts();
+    }
+
+    function copyText(text) {
+      if (!text) return;
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(() => alert('已复制：\n' + text)).catch(() => fallbackCopy(text));
+      } else {
+        fallbackCopy(text);
+      }
+    }
+
+    function fallbackCopy(text) {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      try {
+        document.execCommand('copy');
+        alert('已复制：\n' + text);
+      } catch (err) {
+        alert('复制失败，请手动复制');
+      }
+      document.body.removeChild(textarea);
+    }
+
+    function copyAccountSection(id, section) {
+      const item = store.accounts.find(i => i.id === id);
+      if (!item) return;
+      let lines = [];
+      if (section === 'business') {
+        lines = [
+          `公司名称：${item.name || ''}`,
+          `统一社会信用代码：${item.code || ''}`,
+          `注册地址：${item.address || ''}`,
+          `注册资本：${item.capital || ''}`,
+          `成立时间：${item.establishDate || ''}`
+        ];
+      } else if (section === 'legal') {
+        lines = [
+          `法人姓名：${item.legalName || ''}`,
+          `法人手机号：${item.legalPhone || ''}`,
+          `法人身份证号：${item.legalId || ''}`,
+          `法人邮箱：${item.legalEmail || ''}`
+        ];
+      } else if (section === 'bank') {
+        lines = [
+          `开户银行：${item.bank || ''}`,
+          `银行账号：${item.account || ''}`
+        ];
+      }
+      copyText(lines.join('\n'));
+    }
+
+    // 弹窗系统
+    let currentModalType = '';
+    const modalOverlay = document.getElementById('modal-overlay');
+    const modalTitle = document.getElementById('modal-title');
+    const modalBody = document.getElementById('modal-body');
+
+    const modalConfigs = {
+      tax: { title: '新增申报项', fields: [
+        { name: 'taxType', label: '税种', type: 'text', placeholder: '如：增值税' },
+        { name: 'period', label: '申报周期', type: 'month' },
+        { name: 'deadline', label: '截止日', type: 'date' },
+        { name: 'status', label: '状态', type: 'select', options: ['待申报', '即将到期', '已完成', '异常'] },
+        { name: 'checkResult', label: '核对结果', type: 'text', placeholder: '如：数据已核对' },
+        { name: 'amount', label: '金额', type: 'number', placeholder: '如：10000' },
+        { name: 'remark', label: '备注', type: 'text', placeholder: '选填' }
+      ]},
+      link: { title: '添加网址', fields: [
+        { name: 'title', label: '网站名称', type: 'text', placeholder: '如：电子税务局' },
+        { name: 'url', label: '网址', type: 'text', placeholder: '如：https://etax.chinatax.gov.cn' },
+        { name: 'category', label: '类别', type: 'text', placeholder: '如：税务平台' },
+        { name: 'desc', label: '描述', type: 'text', placeholder: '如：申报缴税、发票查询' },
+        { name: 'icon', label: '图标（Emoji）', type: 'text', placeholder: '如：🌐' }
+      ]},
+      payment: { title: '新增付款', fields: [
+        { name: 'payee', label: '付款对象', type: 'text', placeholder: '如：XX 科技有限公司' },
+        { name: 'content', label: '付款内容', type: 'text', placeholder: '如：云服务费用' },
+        { name: 'date', label: '计划日期', type: 'date' },
+        { name: 'amount', label: '金额', type: 'number', placeholder: '如：12000' },
+        { name: 'status', label: '状态', type: 'select', options: ['待付', '审批中', '已付'] }
+      ]},
+      account: { title: '新增公司主体', fields: [
+        { name: 'name', label: '公司名称', type: 'text', placeholder: '如：北京 XX 科技有限公司' },
+        { name: 'code', label: '统一社会信用代码', type: 'text', placeholder: '如：91110108XXXXXXXX12' },
+        { name: 'address', label: '注册地址', type: 'text', placeholder: '如：北京市海淀区中关村大街1号' },
+        { name: 'capital', label: '注册资本', type: 'text', placeholder: '如：1000万元' },
+        { name: 'establishDate', label: '成立时间', type: 'date' },
+        { name: 'legalName', label: '法人姓名', type: 'text', placeholder: '如：张三' },
+        { name: 'legalPhone', label: '法人手机号', type: 'text', placeholder: '如：13800138000' },
+        { name: 'legalId', label: '法人身份证号', type: 'text', placeholder: '如：11010119900101XXXX' },
+        { name: 'legalEmail', label: '法人邮箱', type: 'text', placeholder: '如：zhangsan@example.com' },
+        { name: 'bank', label: '开户银行', type: 'text', placeholder: '如：中国工商银行北京海淀支行' },
+        { name: 'account', label: '银行账号', type: 'text', placeholder: '如：0200 XXXX XXXX 1234 567' }
+      ]},
+      todo: { title: '新增待办', fields: [
+        { name: 'date', label: '日期', type: 'date' },
+        { name: 'content', label: '内容', type: 'text', placeholder: '如：核对银行流水' },
+        { name: 'progress', label: '进度（%）', type: 'number', placeholder: '0-100' },
+        { name: 'remark', label: '备注', type: 'text', placeholder: '选填' }
+      ]}
+    };
+
+    function openModal(type) {
+      currentModalType = type;
+      const cfg = modalConfigs[type];
+      modalTitle.textContent = cfg.title;
+      modalBody.innerHTML = cfg.fields.map(f => {
+        if (f.type === 'select') {
+          return `<div class="form-group"><label>${f.label}</label><select id="field-${f.name}">${f.options.map(o => `<option value="${o}">${o}</option>`).join('')}</select></div>`;
+        }
+        return `<div class="form-group"><label>${f.label}</label><input type="${f.type}" id="field-${f.name}" placeholder="${f.placeholder || ''}" /></div>`;
+      }).join('');
+      // 设置默认值
+      if (type === 'tax') document.getElementById('field-period').value = document.getElementById('tax-month-filter').value || dateToMonth(formatDateISO(now));
+      if (type === 'payment') document.getElementById('field-date').value = document.getElementById('pay-month-filter').value ? document.getElementById('pay-month-filter').value + '-01' : formatDateISO(now);
+      if (type === 'todo') document.getElementById('field-date').value = formatDateISO(now);
+      modalOverlay.classList.add('active');
+    }
+
+    function closeModal(e) {
+      if (e && e.target !== modalOverlay && !e.target.classList.contains('modal-close') && !e.target.classList.contains('btn')) return;
+      modalOverlay.classList.remove('active');
+      currentModalType = '';
+    }
+
+    function saveModal() {
+      if (!currentModalType) return;
+      const get = id => document.getElementById(id)?.value.trim();
+      try {
+        if (currentModalType === 'tax') saveNewTax(get);
+        else if (currentModalType === 'link') saveNewLink(get);
+        else if (currentModalType === 'payment') saveNewPayment(get);
+        else if (currentModalType === 'account') saveNewAccount(get);
+        else if (currentModalType === 'todo') saveNewTodo(get);
+      } catch (err) {
+        alert(err.message); return;
+      }
+      saveStore();
+      closeModal();
+    }
+
+    function saveNewTax(get) {
+      const taxType = get('field-taxType');
+      const periodRaw = get('field-period');
+      const deadline = get('field-deadline');
+      const status = get('field-status');
+      const checkResult = get('field-checkResult');
+      const amount = get('field-amount');
+      const remark = get('field-remark') || '—';
+      if (!taxType || !periodRaw || !deadline) throw new Error('请填写完整必填项');
+      const [year, month] = periodRaw.split('-');
+      store.tax.push({ id: nextId(store.tax), taxType, period: `${year}年${parseInt(month, 10)}月`, deadline, status, checkResult, amount: parseMoney(amount), remark });
+      renderTax();
+    }
+
+    function saveNewLink(get) {
+      const title = get('field-title');
+      let url = get('field-url');
+      const category = get('field-category') || '未分类';
+      const desc = get('field-desc');
+      const icon = get('field-icon') || '🔗';
+      if (!title || !url) throw new Error('请填写网站名称和网址');
+      if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+      store.links.push({ id: nextId(store.links), title, url, category, desc, icon });
+      renderLinks();
+    }
+
+    function saveNewPayment(get) {
+      const payee = get('field-payee');
+      const content = get('field-content');
+      const date = get('field-date');
+      const amount = get('field-amount');
+      const status = get('field-status');
+      if (!payee || !content || !date || !amount) throw new Error('请填写完整必填项');
+      store.payments.push({ id: nextId(store.payments), payee, content, date, amount: parseMoney(amount), status });
+      renderPayments();
+    }
+
+    function saveNewAccount(get) {
+      const name = get('field-name');
+      const code = get('field-code');
+      const address = get('field-address') || '';
+      const capital = get('field-capital') || '';
+      const establishDate = get('field-establishDate') || '';
+      const legalName = get('field-legalName') || '';
+      const legalPhone = get('field-legalPhone') || '';
+      const legalId = get('field-legalId') || '';
+      const legalEmail = get('field-legalEmail') || '';
+      const bank = get('field-bank');
+      const account = get('field-account');
+      if (!name || !code || !bank || !account) throw new Error('请填写完整公司主体信息（名称、信用代码、银行必填）');
+      store.accounts.push({ id: nextId(store.accounts), name, code, address, capital, establishDate, legalName, legalPhone, legalId, legalEmail, bank, account });
+      renderAccounts();
+    }
+
+    function saveNewTodo(get) {
+      const date = get('field-date');
+      const content = get('field-content');
+      const progress = parseInt(get('field-progress') || '0', 10);
+      const remark = get('field-remark') || '';
+      if (!date || !content) throw new Error('请填写日期和内容');
+      store.todos.push({ id: nextId(store.todos), date, content, progress: Math.max(0, Math.min(100, progress)), remark, done: progress === 100 });
+      renderTodos();
+    }
+
+    // 初始化
+    document.addEventListener('DOMContentLoaded', () => {
+      const taxFilter = document.getElementById('tax-month-filter');
+      taxFilter.value = dateToMonth(formatDateISO(now));
+      const payFilter = document.getElementById('pay-month-filter');
+      payFilter.value = dateToMonth(formatDateISO(now));
+      renderTax(); renderLinks(); renderPayments(); renderTodos(); renderAccounts();
+    });
+
+    // 注册 Service Worker（PWA 离线支持）
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(err => console.warn('SW 注册失败:', err));
+      });
+    }
+  </script>
+</body>
+</html>
